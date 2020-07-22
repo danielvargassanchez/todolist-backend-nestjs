@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TasksRepository } from './tasks.repository';
-import { ReadTaskDTO, CreateTaskDTO } from './dto';
+import { ReadTaskDTO, CreateTaskDTO, UpdateTaskDTO } from './dto';
 import { plainToClass } from 'class-transformer';
 import { Tasks } from './tasks.entity';
 import { UserRepository } from '../user/user.repository';
@@ -26,7 +26,7 @@ export class TasksService {
     if (!taskId) {
       throw new BadRequestException('id must be sent');
     }
-    const taskExists = await this._tasksRepository.findOne(taskId);
+    const taskExists: Tasks = await this._tasksRepository.findOne(taskId);
 
     if (!taskExists) {
       throw new NotFoundException(`task with id ${taskId} does not exists`);
@@ -51,8 +51,11 @@ export class TasksService {
       throw new NotFoundException(`User with id ${userId} does not exists`);
     }
 
-    const myTasks = await this._tasksRepository.find({
-      where: { user: userId },
+    const myTasks: Tasks[] = await this._tasksRepository.find({
+      where: {
+        user: userId,
+        finished: finished.IN_PROCESS,
+      },
     });
 
     return myTasks.map(task => plainToClass(ReadTaskDTO, task));
@@ -73,7 +76,7 @@ export class TasksService {
       throw new NotFoundException(`user with id ${userId} does not exists`);
     }
 
-    const taskSaved = await this._tasksRepository.save({
+    const taskSaved: Tasks = await this._tasksRepository.save({
       title: task.title,
       description: task.description,
       finished: finished.IN_PROCESS,
@@ -81,5 +84,31 @@ export class TasksService {
     });
 
     return plainToClass(ReadTaskDTO, taskSaved);
+  }
+
+  async taskStatus(taskId: number, status: string): Promise<any> {
+    if (!taskId) {
+      throw new BadRequestException('Taskid must be sent');
+    }
+    const task: Tasks = await this._tasksRepository.findOne(taskId);
+    task.finished = status;
+    this._tasksRepository.save(task);
+    return true;
+  }
+
+  async update(
+    taskId: number,
+    task: Partial<UpdateTaskDTO>,
+  ): Promise<ReadTaskDTO> {
+    if (!taskId || !task) {
+      throw new BadRequestException('idTask & task must be sent');
+    }
+    const taskExist: Tasks = await this._tasksRepository.findOne(taskId);
+    taskExist.title = task.title;
+    taskExist.description = task.description;
+
+    const taskUpdated = await this._tasksRepository.save(taskExist);
+
+    return plainToClass(ReadTaskDTO, taskUpdated);
   }
 }

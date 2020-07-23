@@ -22,7 +22,7 @@ export class UserService {
     private readonly _userRepository: UserRepository,
   ) {}
 
-  async getUser(userId: number): Promise<ReadUserDTO> {
+  async getUser(userId: number, req: Request): Promise<ReadUserDTO> {
     if (!userId) {
       throw new BadRequestException('Id must be sent');
     }
@@ -45,31 +45,31 @@ export class UserService {
     return users.map(user => plainToClass(ReadUserDTO, user));
   }
 
-  async create(user: Partial<CreateUserDTO>): Promise<ReadUserDTO> {
-    if (!user.name || !user.email || !user.password) {
-      throw new BadRequestException('User must be sent');
-    }
+  // async create(user: Partial<CreateUserDTO>): Promise<ReadUserDTO> {
+  //   if (!user.name || !user.email || !user.password) {
+  //     throw new BadRequestException('User must be sent');
+  //   }
 
-    const userExists: User = await this._userRepository.findOne({
-      where: { email: user.email, status: status.ACTIVE },
-    });
+  //   const userExists: User = await this._userRepository.findOne({
+  //     where: { email: user.email, status: status.ACTIVE },
+  //   });
 
-    if (userExists) {
-      throw new ConflictException('This email has been used ');
-    }
+  //   if (userExists) {
+  //     throw new ConflictException('This email has been used ');
+  //   }
 
-    const task = new Tasks();
-    task.title = 'Sin tareas';
-    task.description = 'task description';
-    const userSaved: User = await this._userRepository.save({
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      status: status.ACTIVE,
-      task,
-    });
-    return plainToClass(ReadUserDTO, userSaved);
-  }
+  //   const task = new Tasks();
+  //   task.title = 'Sin tareas';
+  //   task.description = 'task description';
+  //   const userSaved: User = await this._userRepository.save({
+  //     name: user.name,
+  //     email: user.email,
+  //     password: user.password,
+  //     status: status.ACTIVE,
+  //     task,
+  //   });
+  //   return plainToClass(ReadUserDTO, userSaved);
+  // }
 
   async update(
     userId: number,

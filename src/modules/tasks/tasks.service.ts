@@ -12,6 +12,8 @@ import { UserRepository } from '../user/user.repository';
 import { finished } from 'src/shared/tasks-finished.enum';
 import { User } from '../user/user.entity';
 import { status } from 'src/shared/entity-status.enum';
+import { Request } from 'express';
+import { IJwtPayload } from '../auth/jwt-payload.interface';
 
 @Injectable()
 export class TasksService {
@@ -41,39 +43,48 @@ export class TasksService {
     return tasks.map(task => plainToClass(ReadTaskDTO, task));
   }
 
-  async getMyTasks(userId: number): Promise<ReadTaskDTO[]> {
-    if (!userId) {
-      throw new BadRequestException('userId must be sent');
+  async getMyTasks(req: Request): Promise<ReadTaskDTO[]> {
+    const userRequest: Partial<IJwtPayload> = req.user;
+
+    if (!userRequest.id) {
+      throw new BadRequestException('jwt must be sent');
     }
 
-    const userExists: User = await this._userRepository.findOne(userId);
+    const userExists = await this._userRepository.findOne(userRequest.id);
+
     if (!userExists) {
-      throw new NotFoundException(`User with id ${userId} does not exists`);
+      throw new NotFoundException('user does not exists');
     }
 
-    const myTasks: Tasks[] = await this._tasksRepository.find({
-      where: {
-        user: userId,
-        finished: finished.IN_PROCESS,
-      },
+    const tasks = await this._tasksRepository.find({
+      where: [
+        {
+          finished: finished.IN_PROCESS,
+          user: userExists.id,
+        },
+        {
+          finished: finished.FINISHED,
+        },
+      ],
     });
 
-    return myTasks.map(task => plainToClass(ReadTaskDTO, task));
+    return tasks.map(task => plainToClass(ReadTaskDTO, task));
   }
 
   async create(
-    userId: number,
+    req: Request,
     task: Partial<CreateTaskDTO>,
   ): Promise<ReadTaskDTO> {
-    if (!userId || !task) {
+    const user: Partial<IJwtPayload> = req.user;
+    if (!user.id || !task) {
       throw new BadRequestException('userId & task must be sent');
     }
 
-    const userExists = await this._userRepository.findOne(userId, {
+    const userExists = await this._userRepository.findOne(user.id, {
       where: { status: status.ACTIVE },
     });
     if (!userExists) {
-      throw new NotFoundException(`user with id ${userId} does not exists`);
+      throw new NotFoundException(`user with id ${user.id} does not exists`);
     }
 
     const taskSaved: Tasks = await this._tasksRepository.save({

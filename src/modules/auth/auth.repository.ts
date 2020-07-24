@@ -7,7 +7,7 @@ import { status } from 'src/shared/entity-status.enum';
 
 @EntityRepository(User)
 export class AuthRepository extends Repository<User> {
-  async signup(signUpDTO: SignUpDTO) {
+  async signup(signUpDTO: SignUpDTO): Promise<User> {
     const { name, email, password } = signUpDTO;
     const user = new User();
     user.name = name;
@@ -21,6 +21,6 @@ export class AuthRepository extends Repository<User> {
     const salt = await genSalt(10);
     user.password = await hash(password, salt);
 
-    await user.save();
+    return await user.save();
   }
 }

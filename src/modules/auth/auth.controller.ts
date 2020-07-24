@@ -14,7 +14,7 @@ export class AuthController {
   @Post('/signup')
   //validationpipe hace que se cumplan los pipes del dto (IsString...)
   @UsePipes(ValidationPipe)
-  async signup(@Body() signUpDTO: SignUpDTO): Promise<void> {
+  async signup(@Body() signUpDTO: SignUpDTO): Promise<{ token: string }> {
     return this._authService.signup(signUpDTO);
   }
 

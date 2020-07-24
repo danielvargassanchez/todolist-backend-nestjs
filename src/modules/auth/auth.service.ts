@@ -11,8 +11,6 @@ import { SignUpDTO, SigninDTO } from './dto';
 import { User } from '../user/user.entity';
 import { compare } from 'bcryptjs';
 import { IJwtPayload } from './jwt-payload.interface';
-import { status } from 'src/shared/entity-status.enum';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,7 +19,7 @@ export class AuthService {
     private readonly _jwtService: JwtService,
   ) {}
 
-  async signup(signup: SignUpDTO): Promise<void> {
+  async signup(signup: SignUpDTO): Promise<{ token: string }> {
     const { email, name } = signup;
     const existsUser = await this._authRepository.findOne({
       where: { email: email },
@@ -31,7 +29,15 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    return this._authRepository.signup(signup);
+    const user: User = await this._authRepository.signup(signup);
+    const payload: IJwtPayload = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    };
+
+    const token = await this._jwtService.sign(payload);
+    return { token };
   }
 
   async signin(signin: SigninDTO): Promise<{ token: string }> {

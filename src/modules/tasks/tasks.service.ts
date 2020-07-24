@@ -38,10 +38,10 @@ export class TasksService {
   }
 
   //para pruebas dejar este método, en desarrollo quitarlo.
-  async getAll(): Promise<ReadTaskDTO[]> {
-    const tasks: Tasks[] = await this._tasksRepository.find();
-    return tasks.map(task => plainToClass(ReadTaskDTO, task));
-  }
+  // async getAll(): Promise<ReadTaskDTO[]> {
+  //   const tasks: Tasks[] = await this._tasksRepository.find();
+  //   return tasks.map(task => plainToClass(ReadTaskDTO, task));
+  // }
 
   async getMyTasks(req: Request): Promise<ReadTaskDTO[]> {
     const userRequest: Partial<IJwtPayload> = req.user;

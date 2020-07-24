@@ -20,7 +20,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class TasksController {
   constructor(private readonly _taskService: TasksService) {}
 
-  @Get('/allTasks')
+  @Get('/myTasks')
   @UseGuards(AuthGuard())
   getMyTasks(@Request() req): Promise<ReadTaskDTO[]> {
     const myTasks = this._taskService.getMyTasks(req);
@@ -33,11 +33,11 @@ export class TasksController {
     return task;
   }
 
-  @Get()
-  getAll(): Promise<ReadTaskDTO[]> {
-    const tasks = this._taskService.getAll();
-    return tasks;
-  }
+  // @Get()
+  // getAll(): Promise<ReadTaskDTO[]> {
+  //   const tasks = this._taskService.getAll();
+  //   return tasks;
+  // }
 
   @Post()
   @UseGuards(AuthGuard())
@@ -47,6 +47,7 @@ export class TasksController {
   }
 
   @Delete(':taskId')
+  @UseGuards(AuthGuard())
   cancelTask(@Param('taskId') taskId: number): Promise<any> {
     console.log('entrando');
     const result = this._taskService.taskStatus(taskId, finished.CANCELED);

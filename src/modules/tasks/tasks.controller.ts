@@ -33,11 +33,11 @@ export class TasksController {
     return task;
   }
 
-  // @Get()
-  // getAll(): Promise<ReadTaskDTO[]> {
-  //   const tasks = this._taskService.getAll();
-  //   return tasks;
-  // }
+  @Get('finalize/:taskId')
+  finishTask(@Param('taskId') taskId: number): Promise<any> {
+    const result = this._taskService.taskStatus(taskId, finished.FINISHED);
+    return result;
+  }
 
   @Post()
   @UseGuards(AuthGuard())
@@ -49,14 +49,7 @@ export class TasksController {
   @Delete(':taskId')
   @UseGuards(AuthGuard())
   cancelTask(@Param('taskId') taskId: number): Promise<any> {
-    console.log('entrando');
     const result = this._taskService.taskStatus(taskId, finished.CANCELED);
-    return result;
-  }
-
-  @Patch('cancel/:taskId')
-  finishTask(@Param('taskId') taskId: number): Promise<any> {
-    const result = this._taskService.taskStatus(taskId, finished.FINISHED);
     return result;
   }
 

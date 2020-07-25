@@ -17,6 +17,7 @@ import { CreateUserDTO } from './tdo/create-user.dto';
 import { UpdateUserDTO } from './tdo/update-user.dto';
 import { Request } from 'express';
 import { IJwtPayload } from '../auth/jwt-payload.interface';
+import { ReadTaskDTO } from '../tasks/dto';
 
 @Injectable()
 export class UserService {
@@ -40,7 +41,12 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    return plainToClass(ReadUserDTO, userExists);
+    const userDto: ReadUserDTO = plainToClass(ReadUserDTO, userExists);
+    userDto.tasks = userExists.tasks.map(task =>
+      plainToClass(ReadTaskDTO, task),
+    );
+
+    return plainToClass(ReadUserDTO, userDto);
   }
 
   async getUsers(): Promise<ReadUserDTO[]> {
